@@ -4,6 +4,7 @@ import type {
   Result,
   StockSheet,
 } from '../optimizer/types';
+import type { FurnitureDesign } from '../furniture/types';
 import type { Unit } from './store';
 
 const KEY = 'kingcut/state/v1';
@@ -15,6 +16,7 @@ type Persisted = {
   stock: StockSheet[];
   options: Options;
   unit: Unit;
+  furnitureDesign: FurnitureDesign;
   result: Result | null;
 };
 

@@ -1,6 +1,7 @@
 import { useStore } from '../state/store';
 import type { OptimizationPriority } from '../optimizer/types';
 import { fmt, fmtArea, fmtPct } from '../utils/format';
+import { CollapsibleCard } from './CollapsibleCard';
 
 const PRIORITY_LABEL: Record<OptimizationPriority, string> = {
   waste: 'Least wasted area',
@@ -21,10 +22,7 @@ export function Stats() {
 
   return (
     <div className="stats-stack">
-      <section className="card">
-        <header className="card-header">
-          <h2>Global statistics</h2>
-        </header>
+      <CollapsibleCard title="Global statistics">
         <dl className="stats">
           <dt>Sheets used</dt>
           <dd>{totals.sheetsUsed}</dd>
@@ -51,15 +49,13 @@ export function Stats() {
           <dt>Optimization priority</dt>
           <dd>{PRIORITY_LABEL[priority]}</dd>
         </dl>
-      </section>
+      </CollapsibleCard>
 
       {result.sheets.map((s) => (
-        <section className="card" key={`stat-${s.sheetIndex}-${s.sheetId}`}>
-          <header className="card-header">
-            <h2>
-              Sheet {s.sheetIndex + 1} statistics
-            </h2>
-          </header>
+        <CollapsibleCard
+          key={`stat-${s.sheetIndex}-${s.sheetId}`}
+          title={`Sheet ${s.sheetIndex + 1} statistics`}
+        >
           <dl className="stats">
             <dt>Stock sheet</dt>
             <dd>
@@ -86,13 +82,10 @@ export function Stats() {
             <dt>Cut length</dt>
             <dd>{fmt(s.cutLength, unit)}</dd>
           </dl>
-        </section>
+        </CollapsibleCard>
       ))}
 
-      <section className="card">
-        <header className="card-header">
-          <h2>Cuts</h2>
-        </header>
+      <CollapsibleCard title="Cuts">
         <table className="data-table cuts-table">
           <thead>
             <tr>
@@ -117,7 +110,7 @@ export function Stats() {
             )}
           </tbody>
         </table>
-      </section>
+      </CollapsibleCard>
     </div>
   );
 }

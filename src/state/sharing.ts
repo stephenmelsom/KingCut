@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import type { FurnitureDesign } from '../furniture/types';
 import type { Options, Panel, StockSheet } from '../optimizer/types';
 import type { Unit } from './store';
 
@@ -7,6 +8,7 @@ export type InputSnapshot = {
   stock: StockSheet[];
   options: Options;
   unit: Unit;
+  furnitureDesign?: FurnitureDesign;
 };
 
 const HASH_PREFIX = '#project=';
@@ -90,6 +92,7 @@ export function decodeShareHash(hash: string): InputSnapshot | null {
       stock?: StockSheet[];
       options?: Options;
       unit?: Unit;
+      furnitureDesign?: FurnitureDesign;
     };
     if (!decoded.panels || !decoded.stock || !decoded.options || !decoded.unit) {
       return null;
@@ -99,6 +102,7 @@ export function decodeShareHash(hash: string): InputSnapshot | null {
       stock: decoded.stock,
       options: decoded.options,
       unit: decoded.unit,
+      furnitureDesign: decoded.furnitureDesign,
     };
   } catch {
     return null;

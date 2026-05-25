@@ -1,4 +1,5 @@
 import { useStore } from '../state/store';
+import { CollapsibleCard } from './CollapsibleCard';
 import { EditableNumber } from './EditableNumber';
 
 export function PanelsTable() {
@@ -8,13 +9,14 @@ export function PanelsTable() {
   const addPanel = useStore((s) => s.addPanel);
 
   return (
-    <section className="card">
-      <header className="card-header">
-        <h2>Panels</h2>
+    <CollapsibleCard
+      title="Panels"
+      actions={
         <button className="btn-sm" onClick={addPanel}>
           + Add
         </button>
-      </header>
+      }
+    >
       <table className="data-table">
         <thead>
           <tr>
@@ -98,6 +100,6 @@ export function PanelsTable() {
           )}
         </tbody>
       </table>
-    </section>
+    </CollapsibleCard>
   );
 }

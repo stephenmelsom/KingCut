@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
+import {
+  generateFurnitureParts,
+  normalizeFurnitureDesign,
+} from '../furniture/generate';
+import type { FurnitureDesign } from '../furniture/types';
 import { deriveCuts, optimize } from '../optimizer/optimize';
 import type {
   Options,
@@ -30,6 +35,7 @@ type State = {
   stock: StockSheet[];
   options: Options;
   unit: Unit;
+  furnitureDesign: FurnitureDesign;
   result: Result | null;
 };
 
@@ -42,6 +48,8 @@ type Actions = {
   removeSheet: (id: string) => void;
   setOptions: (patch: Partial<Options>) => void;
   setUnit: (unit: Unit) => void;
+  updateFurnitureDesign: (patch: Partial<FurnitureDesign>) => void;
+  appendFurnitureParts: () => void;
   importInputs: (snapshot: Partial<InputSnapshot>) => void;
   newProject: (name: string) => void;
   switchProject: (id: string) => void;
@@ -100,22 +108,31 @@ function referenceSeed(): Pick<State, 'panels' | 'stock'> {
   };
 }
 
-function blankState(): Pick<State, 'panels' | 'stock' | 'options' | 'unit' | 'result'> {
+function blankState(): Pick<
+  State,
+  'panels' | 'stock' | 'options' | 'unit' | 'furnitureDesign' | 'result'
+> {
   return {
     panels: [blankPanel()],
     stock: [blankSheet()],
     options: defaultOptions,
     unit: 'in',
+    furnitureDesign: normalizeFurnitureDesign(),
     result: null,
   };
 }
 
 function normalizeState(
-  state: Pick<State, 'panels' | 'stock' | 'options' | 'unit' | 'result'>,
-): Pick<State, 'panels' | 'stock' | 'options' | 'unit' | 'result'> {
+  state: Pick<State, 'panels' | 'stock' | 'options' | 'unit' | 'result'> &
+    Partial<Pick<State, 'furnitureDesign'>>,
+): Pick<
+  State,
+  'panels' | 'stock' | 'options' | 'unit' | 'furnitureDesign' | 'result'
+> {
   return {
     ...state,
     options: { ...defaultOptions, ...state.options },
+    furnitureDesign: normalizeFurnitureDesign(state.furnitureDesign),
     result: state.result ?? null,
   };
 }
@@ -153,6 +170,7 @@ const initial: State = (() => {
           stock: seed.stock,
           options: defaultOptions,
           unit: 'in',
+          furnitureDesign: normalizeFurnitureDesign(),
           result: null,
         },
       },
@@ -210,6 +228,7 @@ export const useStore = create<State & Actions>((set, get) => {
       stock: s.stock,
       options: s.options,
       unit: s.unit,
+      furnitureDesign: s.furnitureDesign,
       result: s.result,
     };
   };
@@ -278,6 +297,34 @@ export const useStore = create<State & Actions>((set, get) => {
       persistSoon();
     },
 
+    updateFurnitureDesign: (patch) => {
+      set((s) => ({
+        furnitureDesign: normalizeFurnitureDesign({
+          ...s.furnitureDesign,
+          ...patch,
+        }),
+      }));
+      persistSoon();
+    },
+
+    appendFurnitureParts: () => {
+      const parts = generateFurnitureParts(get().furnitureDesign);
+      set((s) => ({
+        panels: [
+          ...s.panels,
+          ...parts.map((part) => ({
+            id: nanoid(8),
+            length: part.length,
+            width: part.width,
+            qty: part.qty,
+            label: part.label,
+            grain: false,
+          })),
+        ],
+      }));
+      persistSoon();
+    },
+
     importInputs: (snapshot) => {
       set((s) => ({
         panels: snapshot.panels ?? s.panels,
@@ -286,6 +333,9 @@ export const useStore = create<State & Actions>((set, get) => {
           ? { ...defaultOptions, ...snapshot.options }
           : s.options,
         unit: snapshot.unit ?? s.unit,
+        furnitureDesign: normalizeFurnitureDesign(
+          snapshot.furnitureDesign ?? s.furnitureDesign,
+        ),
         result: null,
       }));
       persistSoon();

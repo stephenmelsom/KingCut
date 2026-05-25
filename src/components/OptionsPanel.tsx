@@ -1,5 +1,6 @@
 import { useStore } from '../state/store';
 import type { OptimizationPriority } from '../optimizer/types';
+import { CollapsibleCard } from './CollapsibleCard';
 import { EditableNumber } from './EditableNumber';
 
 const PRIORITY_OPTIONS: { value: OptimizationPriority; label: string }[] = [
@@ -16,10 +17,7 @@ export function OptionsPanel() {
   const setUnit = useStore((s) => s.setUnit);
 
   return (
-    <section className="card">
-      <header className="card-header">
-        <h2>Options</h2>
-      </header>
+    <CollapsibleCard title="Options">
       <div className="options-grid">
         <div className="option-row">
           <span>Display unit</span>
@@ -116,6 +114,6 @@ export function OptionsPanel() {
           />
         </label>
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }

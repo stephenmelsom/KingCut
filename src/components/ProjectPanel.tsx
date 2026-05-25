@@ -1,4 +1,5 @@
 import { useStore } from '../state/store';
+import { CollapsibleCard } from './CollapsibleCard';
 
 export function ProjectPanel() {
   const projects = useStore((s) => s.projects);
@@ -26,10 +27,7 @@ export function ProjectPanel() {
   };
 
   return (
-    <section className="card">
-      <header className="card-header">
-        <h2>Project</h2>
-      </header>
+    <CollapsibleCard title="Project">
       <div className="panel-stack">
         <label className="field-row">
           <span>Current</span>
@@ -58,6 +56,6 @@ export function ProjectPanel() {
           </button>
         </div>
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }

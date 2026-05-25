@@ -1,4 +1,5 @@
 import { LayoutCanvas } from './components/LayoutCanvas';
+import { FurnitureDesignerPanel } from './components/FurnitureDesignerPanel';
 import { OptionsPanel } from './components/OptionsPanel';
 import { PanelsTable } from './components/PanelsTable';
 import { PrintView } from './components/PrintView';
@@ -17,6 +18,7 @@ export default function App() {
           <ProjectPanel />
           <PanelsTable />
           <StockSheetsTable />
+          <FurnitureDesignerPanel />
           <OptionsPanel />
           <SharingPanel />
         </aside>

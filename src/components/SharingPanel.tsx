@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { encodeShareHash, exportCsv, importCsv } from '../state/sharing';
 import { useStore } from '../state/store';
+import { CollapsibleCard } from './CollapsibleCard';
 
 export function SharingPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,10 +46,7 @@ export function SharingPanel() {
   };
 
   return (
-    <section className="card">
-      <header className="card-header">
-        <h2>Sharing</h2>
-      </header>
+    <CollapsibleCard title="Sharing">
       <div className="panel-stack">
         <input
           ref={fileInputRef}
@@ -69,7 +67,7 @@ export function SharingPanel() {
           </button>
         </div>
       </div>
-    </section>
+    </CollapsibleCard>
   );
 }
 
