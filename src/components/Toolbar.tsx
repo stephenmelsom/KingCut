@@ -1,0 +1,58 @@
+import { useStore } from '../state/store';
+
+export function Toolbar() {
+  const calculate = useStore((s) => s.calculate);
+  const clearAll = useStore((s) => s.clearAll);
+  const loadSeed = useStore((s) => s.loadSeed);
+  const unit = useStore((s) => s.unit);
+  const setUnit = useStore((s) => s.setUnit);
+  const result = useStore((s) => s.result);
+  const hasResult = !!result && result.sheets.length > 0;
+
+  return (
+    <header className="toolbar">
+      <div className="brand">
+        <span className="logo">▦</span>
+        <span>KingCut</span>
+        <span className="tag">Free cutlist optimizer</span>
+      </div>
+      <div className="toolbar-actions">
+        <div className="unit-toggle" role="group" aria-label="Display unit">
+          <button
+            className={unit === 'in' ? 'active' : ''}
+            onClick={() => setUnit('in')}
+          >
+            in
+          </button>
+          <button
+            className={unit === 'mm' ? 'active' : ''}
+            onClick={() => setUnit('mm')}
+          >
+            mm
+          </button>
+        </div>
+        <button className="btn-ghost" onClick={loadSeed} title="Load example">
+          Example
+        </button>
+        <button className="btn-ghost" onClick={clearAll} title="Clear all">
+          Clear
+        </button>
+        <button
+          className="btn-ghost"
+          onClick={() => window.print()}
+          disabled={!hasResult}
+          title={
+            hasResult
+              ? 'Open the print dialog (choose Save as PDF)'
+              : 'Calculate a layout first'
+          }
+        >
+          ↓ PDF
+        </button>
+        <button className="btn-primary" onClick={calculate}>
+          ▶ Calculate
+        </button>
+      </div>
+    </header>
+  );
+}
