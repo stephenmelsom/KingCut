@@ -22,7 +22,7 @@ export function StockSheetsTable() {
             <th>Width</th>
             <th>Qty</th>
             <th>Label</th>
-            <th title="Stock has grain (running along length)">G</th>
+            <th title="Stock grain runs along sheet length">G</th>
             <th aria-label="actions" />
           </tr>
         </thead>
@@ -69,8 +69,8 @@ export function StockSheetsTable() {
               <td className="cell-check">
                 <input
                   type="checkbox"
-                  aria-label="Grain"
-                  title="Stock has grain along its length"
+                  aria-label="Stock grain runs along length"
+                  title="Check if this sheet has grain running along its length. Grained panels can only use this stock when grain direction is considered."
                   checked={!!s.grain}
                   onChange={(e) =>
                     updateSheet(s.id, { grain: e.target.checked })

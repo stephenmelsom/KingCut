@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, type PointerEvent } from 'react';
 import { useStore } from '../state/store';
 import { fmt } from '../utils/format';
 import type { Placement, SheetLayout } from '../optimizer/types';
@@ -11,6 +11,7 @@ export function LayoutCanvas() {
   const result = useStore((s) => s.result);
   const showLabels = useStore((s) => s.options.showLabels);
   const unit = useStore((s) => s.unit);
+  const movePlacement = useStore((s) => s.movePlacement);
 
   if (!result) {
     return (
@@ -38,6 +39,7 @@ export function LayoutCanvas() {
           sheet={sheet}
           showLabels={showLabels}
           unit={unit}
+          onMovePlacement={movePlacement}
         />
       ))}
       {result.unplaced.length > 0 && (
@@ -54,11 +56,24 @@ function SheetView({
   sheet,
   showLabels,
   unit,
+  onMovePlacement,
 }: {
   sheet: SheetLayout;
   showLabels: boolean;
   unit: 'in' | 'mm';
+  onMovePlacement: (
+    sheetIndex: number,
+    placementIndex: number,
+    x: number,
+    y: number,
+  ) => void;
 }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [drag, setDrag] = useState<{
+    placementIndex: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
   const { sheetW, sheetH, placements } = sheet;
   const scale = useMemo(() => {
     const sw = MAX_W / sheetW;
@@ -71,6 +86,50 @@ function SheetView({
   const totalW = w + PAD * 2;
   const totalH = h + PAD * 2;
 
+  const pointerToSheet = (event: PointerEvent<Element>) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return null;
+    const local = point.matrixTransform(ctm.inverse());
+    return {
+      x: (local.x - PAD) / scale,
+      y: (local.y - PAD) / scale,
+    };
+  };
+
+  const startDrag = (
+    event: PointerEvent<SVGGElement>,
+    placementIndex: number,
+    placement: Placement,
+  ) => {
+    const point = pointerToSheet(event);
+    if (!point) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDrag({
+      placementIndex,
+      offsetX: point.x - placement.x,
+      offsetY: point.y - placement.y,
+    });
+  };
+
+  const moveDrag = (event: PointerEvent<SVGSVGElement>) => {
+    if (!drag) return;
+    const point = pointerToSheet(event);
+    if (!point) return;
+    onMovePlacement(
+      sheet.sheetIndex,
+      drag.placementIndex,
+      point.x - drag.offsetX,
+      point.y - drag.offsetY,
+    );
+  };
+
+  const stopDrag = () => setDrag(null);
+
   return (
     <figure className="sheet">
       <figcaption>
@@ -80,10 +139,15 @@ function SheetView({
         </span>
       </figcaption>
       <svg
+        ref={svgRef}
         className="sheet-svg"
         viewBox={`0 0 ${totalW} ${totalH}`}
         width={totalW}
         height={totalH}
+        onPointerMove={moveDrag}
+        onPointerUp={stopDrag}
+        onPointerCancel={stopDrag}
+        onPointerLeave={stopDrag}
       >
         {/* Sheet background */}
         <rect
@@ -103,6 +167,8 @@ function SheetView({
             scale={scale}
             showLabels={showLabels}
             unit={unit}
+            isDragging={drag?.placementIndex === i}
+            onPointerDown={(event) => startDrag(event, i, p)}
           />
         ))}
         {/* Outer dimensions */}
@@ -130,11 +196,15 @@ function PlacementRect({
   scale,
   showLabels,
   unit,
+  isDragging,
+  onPointerDown,
 }: {
   p: Placement;
   scale: number;
   showLabels: boolean;
   unit: 'in' | 'mm';
+  isDragging: boolean;
+  onPointerDown: (event: PointerEvent<SVGGElement>) => void;
 }) {
   const x = PAD + p.x * scale;
   const y = PAD + p.y * scale;
@@ -146,7 +216,10 @@ function PlacementRect({
   const dimFont = Math.max(7, Math.min(11, minDim * 0.12));
 
   return (
-    <g>
+    <g
+      className={isDragging ? 'placement dragging' : 'placement'}
+      onPointerDown={onPointerDown}
+    >
       <rect
         x={x}
         y={y}

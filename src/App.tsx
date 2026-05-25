@@ -2,6 +2,8 @@ import { LayoutCanvas } from './components/LayoutCanvas';
 import { OptionsPanel } from './components/OptionsPanel';
 import { PanelsTable } from './components/PanelsTable';
 import { PrintView } from './components/PrintView';
+import { ProjectPanel } from './components/ProjectPanel';
+import { SharingPanel } from './components/SharingPanel';
 import { Stats } from './components/Stats';
 import { StockSheetsTable } from './components/StockSheetsTable';
 import { Toolbar } from './components/Toolbar';
@@ -12,9 +14,11 @@ export default function App() {
       <Toolbar />
       <main className="layout">
         <aside className="col-left">
+          <ProjectPanel />
           <PanelsTable />
           <StockSheetsTable />
           <OptionsPanel />
+          <SharingPanel />
         </aside>
         <section className="col-center">
           <LayoutCanvas />

@@ -8,6 +8,7 @@ const defaultOptions: Options = {
   singleSheet: false,
   showLabels: true,
   priority: 'waste',
+  thorough: false,
   respectGrain: false,
 };
 
@@ -177,5 +178,33 @@ describe('optimize', () => {
     });
     expect(result.sheets).toHaveLength(1);
     expect(result.unplaced.length).toBeGreaterThan(0);
+  });
+
+  it('keeps thorough search deterministic and no worse than normal search', () => {
+    const panels: Panel[] = [
+      { id: 'p1', length: 32, width: 14, qty: 2, label: 'A' },
+      { id: 'p2', length: 27, width: 18, qty: 2, label: 'B' },
+      { id: 'p3', length: 19, width: 17, qty: 3, label: 'C' },
+      { id: 'p4', length: 15, width: 11, qty: 4, label: 'D' },
+      { id: 'p5', length: 8, width: 31, qty: 2, label: 'E' },
+    ];
+    const stock: StockSheet[] = [{ id: 's1', length: 60, width: 40, qty: 4 }];
+    const normal = optimize(panels, stock, defaultOptions);
+    const thorough = optimize(panels, stock, {
+      ...defaultOptions,
+      thorough: true,
+    });
+    const thoroughAgain = optimize(panels, stock, {
+      ...defaultOptions,
+      thorough: true,
+    });
+
+    expect(thorough).toEqual(thoroughAgain);
+    expect(thorough.unplaced.length).toBeLessThanOrEqual(normal.unplaced.length);
+    if (thorough.unplaced.length === normal.unplaced.length) {
+      expect(thorough.totals.wastedArea).toBeLessThanOrEqual(
+        normal.totals.wastedArea,
+      );
+    }
   });
 });

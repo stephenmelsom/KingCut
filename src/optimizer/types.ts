@@ -30,6 +30,9 @@ export type Options = {
   singleSheet: boolean;
   showLabels: boolean;
   priority: OptimizationPriority;
+  /** When true, try extra deterministic shuffled panel orders within each
+   * heuristic bucket. Slower, but can reduce waste on harder inputs. */
+  thorough: boolean;
   /** When true, grained panels keep their length aligned to the stock's
    * length axis and may only be placed on grained stock. */
   respectGrain: boolean;

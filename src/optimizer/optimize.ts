@@ -40,6 +40,7 @@ const SORTS: SortName[] = [
 ];
 const FITS: FitName[] = ['best-area', 'best-short-side', 'best-long-side'];
 const SPLITS: SplitRule[] = ['sas', 'las'];
+const THOROUGH_ORDER_LIMIT = 16;
 
 export function optimize(
   panels: Panel[],
@@ -74,20 +75,24 @@ export function optimize(
   }
 
   let best: Result | null = null;
+  const seed = seedFor(items, sheets);
   for (const sort of SORTS) {
+    const sorted = sortItems(items, sort);
+    const orders = orderVariants(sorted, options.thorough, mixSeed(seed, sort));
     for (const fit of FITS) {
       for (const split of SPLITS) {
         for (const swapSheet of [false, true]) {
-          const ordered = sortItems(items, sort);
-          const r = packAcrossSheets(
-            ordered,
-            sheets,
-            options,
-            fit,
-            split,
-            swapSheet,
-          );
-          if (better(r, best, options.priority)) best = r;
+          for (const ordered of orders) {
+            const r = packAcrossSheets(
+              ordered,
+              sheets,
+              options,
+              fit,
+              split,
+              swapSheet,
+            );
+            if (better(r, best, options.priority)) best = r;
+          }
         }
       }
     }
@@ -131,6 +136,44 @@ function sortItems(items: Item[], sort: SortName): Item[] {
     }
   });
   return copy;
+}
+
+function orderVariants(items: Item[], thorough: boolean, seed: number): Item[][] {
+  if (!thorough || items.length < 3) return [items];
+
+  const count = Math.min(
+    THOROUGH_ORDER_LIMIT,
+    Math.max(4, items.length * 2),
+  );
+  const variants = [items];
+  const seen = new Set([signature(items)]);
+
+  for (let i = 0; i < count; i++) {
+    const shuffled = shuffle(items, mixSeed(seed, String(i)));
+    const key = signature(shuffled);
+    if (!seen.has(key)) {
+      seen.add(key);
+      variants.push(shuffled);
+    }
+  }
+
+  return variants;
+}
+
+function shuffle(items: Item[], seed: number): Item[] {
+  const next = [...items];
+  const random = mulberry32(seed);
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
+function signature(items: Item[]): string {
+  return items
+    .map((item) => `${item.panelId}:${item.w}:${item.h}:${item.allowRotation}`)
+    .join('|');
 }
 
 function packAcrossSheets(
@@ -261,6 +304,59 @@ function metric(r: Result, key: Metric): number {
   }
 }
 
+function seedFor(
+  items: Item[],
+  sheets: { sheet: StockSheet; copyIndex: number }[],
+): number {
+  const itemKey = items
+    .map((item) =>
+      [
+        item.panelId,
+        item.label ?? '',
+        item.w,
+        item.h,
+        item.allowRotation ? 1 : 0,
+        item.grain ? 1 : 0,
+      ].join(':'),
+    )
+    .join('|');
+  const sheetKey = sheets
+    .map(({ sheet, copyIndex }) =>
+      [
+        sheet.id,
+        sheet.length,
+        sheet.width,
+        copyIndex,
+        sheet.grain ? 1 : 0,
+      ].join(':'),
+    )
+    .join('|');
+  return hashString(`${itemKey}#${sheetKey}`);
+}
+
+function mixSeed(seed: number, value: string): number {
+  return hashString(`${seed}:${value}`);
+}
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed = (seed + 0x6d2b79f5) >>> 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function emptyResult(items: Item[]): Result {
   return {
     sheets: [],
@@ -288,7 +384,7 @@ function emptyResult(items: Item[]): Result {
  * This is an approximation — not all placements are reachable by global
  * cuts, but it gives a useful count and total cut length.
  */
-function deriveCuts(
+export function deriveCuts(
   placements: Placement[],
   sheetW: number,
   sheetH: number,

@@ -22,7 +22,7 @@ export function PanelsTable() {
             <th>Width</th>
             <th>Qty</th>
             <th>Label</th>
-            <th title="Has grain (must align with stock grain)">G</th>
+            <th title="Grain runs along this panel's length">G</th>
             <th aria-label="actions" />
           </tr>
         </thead>
@@ -69,8 +69,8 @@ export function PanelsTable() {
               <td className="cell-check">
                 <input
                   type="checkbox"
-                  aria-label="Grain"
-                  title="Panel has grain"
+                  aria-label="Panel grain runs along length"
+                  title="Check if this panel has grain running along its length. When grain direction is considered, it will not rotate and must use grained stock."
                   checked={!!p.grain}
                   onChange={(e) =>
                     updatePanel(p.id, { grain: e.target.checked })

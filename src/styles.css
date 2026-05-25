@@ -76,7 +76,12 @@ input[type="text"]:focus {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
   overflow-y: auto;
+}
+.col-left > .card,
+.col-right > .card {
+  flex: 0 0 auto;
 }
 .col-center {
   overflow: auto;
@@ -91,6 +96,7 @@ input[type="text"]:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 8px 16px;
   background: var(--header);
   color: var(--header-text);
@@ -116,6 +122,8 @@ input[type="text"]:focus {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .unit-toggle {
   display: flex;
@@ -131,6 +139,16 @@ input[type="text"]:focus {
 }
 .unit-toggle button.active {
   background: var(--accent);
+}
+.pane-toggle {
+  border-color: var(--border);
+}
+.pane-toggle button {
+  color: var(--text);
+  padding: 4px 12px;
+}
+.pane-toggle button.active {
+  color: white;
 }
 .btn-primary {
   background: var(--success);
@@ -150,12 +168,22 @@ input[type="text"]:focus {
 .btn-ghost:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+.btn-ghost:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .btn-sm {
   background: var(--surface);
   border: 1px solid var(--border);
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
+}
+.btn-sm.danger {
+  color: #b91c1c;
+}
+.btn-sm:hover {
+  background: #f7f8fa;
 }
 .btn-icon {
   background: transparent;
@@ -167,6 +195,17 @@ input[type="text"]:focus {
 }
 .btn-icon:hover {
   color: #7f1d1d;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Cards */
@@ -191,6 +230,34 @@ input[type="text"]:focus {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: #4b5563;
+}
+.panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-row > span {
+  font-size: 12px;
+  color: #4b5563;
+}
+.field-row .option-select {
+  max-width: none;
+  width: 100%;
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.button-row .btn-sm {
+  flex: 1 1 auto;
+  min-height: 28px;
 }
 
 /* Tables */
@@ -342,6 +409,18 @@ input[type="text"]:focus {
   background: #fafbfc;
   border: 1px solid var(--border);
   border-radius: 4px;
+  touch-action: none;
+  user-select: none;
+}
+.placement {
+  cursor: grab;
+}
+.placement.dragging {
+  cursor: grabbing;
+}
+.placement.dragging rect {
+  stroke: var(--accent);
+  stroke-width: 2;
 }
 .warn {
   background: var(--warn-bg);

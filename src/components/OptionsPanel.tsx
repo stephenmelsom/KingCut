@@ -12,6 +12,8 @@ const PRIORITY_OPTIONS: { value: OptimizationPriority; label: string }[] = [
 export function OptionsPanel() {
   const options = useStore((s) => s.options);
   const setOptions = useStore((s) => s.setOptions);
+  const unit = useStore((s) => s.unit);
+  const setUnit = useStore((s) => s.setUnit);
 
   return (
     <section className="card">
@@ -19,6 +21,23 @@ export function OptionsPanel() {
         <h2>Options</h2>
       </header>
       <div className="options-grid">
+        <div className="option-row">
+          <span>Display unit</span>
+          <div className="unit-toggle pane-toggle" role="group" aria-label="Display unit">
+            <button
+              className={unit === 'in' ? 'active' : ''}
+              onClick={() => setUnit('in')}
+            >
+              in
+            </button>
+            <button
+              className={unit === 'mm' ? 'active' : ''}
+              onClick={() => setUnit('mm')}
+            >
+              mm
+            </button>
+          </div>
+        </div>
         <label className="option-row">
           <span>Optimization priority</span>
           <select
@@ -75,10 +94,23 @@ export function OptionsPanel() {
           />
         </label>
         <label className="option-row">
+          <span>Thorough search</span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-label="Thorough search"
+            title="Try extra deterministic panel orderings. Slower, but can find lower-waste layouts on harder cutlists."
+            checked={options.thorough}
+            onChange={(e) => setOptions({ thorough: e.target.checked })}
+          />
+        </label>
+        <label className="option-row">
           <span>Consider grain direction</span>
           <input
             type="checkbox"
             role="switch"
+            aria-label="Consider grain direction"
+            title="When enabled, checked panels keep grain along their length, cannot rotate, and must be placed on checked stock sheets."
             checked={options.respectGrain}
             onChange={(e) => setOptions({ respectGrain: e.target.checked })}
           />
