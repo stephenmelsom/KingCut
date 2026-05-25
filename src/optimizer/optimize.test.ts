@@ -8,6 +8,7 @@ const defaultOptions: Options = {
   singleSheet: false,
   showLabels: true,
   priority: 'waste',
+  respectGrain: false,
 };
 
 describe('optimize', () => {
@@ -94,6 +95,72 @@ describe('optimize', () => {
     // Used area = 17*19 + 4*(15.5*19) + 2*(52*19) = 323 + 1178 + 1976 = 3477
     expect(result.sheets[0].usedArea).toBeCloseTo(3477, 5);
     expect(result.totals.totalArea).toBe(96 * 48);
+  });
+
+  describe('grain direction', () => {
+    it('rotates a grained panel when grain is NOT respected', () => {
+      // 10×4 panel must rotate to fit a 5×10 sheet.
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 4, qty: 1, label: 'A', grain: true },
+      ];
+      const stock: StockSheet[] = [
+        { id: 's1', length: 5, width: 10, qty: 1, grain: true },
+      ];
+      const r = optimize(panels, stock, {
+        ...defaultOptions,
+        respectGrain: false,
+      });
+      expect(r.sheets).toHaveLength(1);
+      expect(r.sheets[0].placements[0].rotated).toBe(true);
+    });
+
+    it('refuses to rotate a grained panel when grain IS respected', () => {
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 4, qty: 1, label: 'A', grain: true },
+      ];
+      // The only sheet here would require the panel to rotate to fit;
+      // grain respect should block that, leaving it unplaced.
+      const stock: StockSheet[] = [
+        { id: 's1', length: 5, width: 10, qty: 1, grain: true },
+      ];
+      const r = optimize(panels, stock, {
+        ...defaultOptions,
+        respectGrain: true,
+      });
+      expect(r.sheets).toHaveLength(0);
+      expect(r.unplaced).toHaveLength(1);
+    });
+
+    it('places a grained panel onto matching grained stock without rotation', () => {
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 4, qty: 1, label: 'A', grain: true },
+      ];
+      const stock: StockSheet[] = [
+        { id: 's1', length: 20, width: 10, qty: 1, grain: true },
+      ];
+      const r = optimize(panels, stock, {
+        ...defaultOptions,
+        respectGrain: true,
+      });
+      expect(r.sheets).toHaveLength(1);
+      expect(r.sheets[0].placements[0].rotated).toBe(false);
+      expect(r.sheets[0].placements[0].grain).toBe(true);
+    });
+
+    it('keeps grained panels off ungrained stock when grain is respected', () => {
+      const panels: Panel[] = [
+        { id: 'p1', length: 5, width: 5, qty: 1, label: 'A', grain: true },
+      ];
+      const stock: StockSheet[] = [
+        { id: 's1', length: 20, width: 20, qty: 1, grain: false },
+      ];
+      const r = optimize(panels, stock, {
+        ...defaultOptions,
+        respectGrain: true,
+      });
+      expect(r.sheets).toHaveLength(0);
+      expect(r.unplaced).toHaveLength(1);
+    });
   });
 
   it('respects singleSheet by not allocating more sheets', () => {

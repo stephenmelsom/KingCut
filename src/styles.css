@@ -218,11 +218,22 @@ input[type="text"]:focus {
 .data-table td:nth-child(1),
 .data-table td:nth-child(2),
 .data-table td:nth-child(3) {
-  width: 70px;
+  width: 60px;
+}
+.data-table th:nth-child(5),
+.data-table td:nth-child(5) {
+  width: 24px;
+  text-align: center;
 }
 .data-table th:last-child,
 .data-table td:last-child {
-  width: 28px;
+  width: 24px;
+}
+.cell-check {
+  text-align: center;
+}
+.cell-check input[type="checkbox"] {
+  margin: 0;
 }
 .data-table input {
   padding: 2px 4px;

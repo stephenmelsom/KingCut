@@ -4,6 +4,8 @@ export type Panel = {
   width: number;
   qty: number;
   label?: string;
+  /** True if this panel has grain that must align with the stock's grain. */
+  grain?: boolean;
 };
 
 export type StockSheet = {
@@ -12,6 +14,8 @@ export type StockSheet = {
   width: number;
   qty: number;
   label?: string;
+  /** True if this stock sheet has grain (running along its length axis). */
+  grain?: boolean;
 };
 
 export type OptimizationPriority =
@@ -26,6 +30,9 @@ export type Options = {
   singleSheet: boolean;
   showLabels: boolean;
   priority: OptimizationPriority;
+  /** When true, grained panels keep their length aligned to the stock's
+   * length axis and may only be placed on grained stock. */
+  respectGrain: boolean;
 };
 
 export type Placement = {
@@ -36,6 +43,7 @@ export type Placement = {
   w: number;
   h: number;
   rotated: boolean;
+  grain?: boolean;
 };
 
 export type Cut = {

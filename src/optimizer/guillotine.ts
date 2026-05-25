@@ -8,6 +8,7 @@ type Item = {
   w: number;
   h: number;
   allowRotation: boolean;
+  grain: boolean;
 };
 
 type FitChoice = 'best-area' | 'best-short-side' | 'best-long-side';
@@ -64,6 +65,7 @@ export function packBin(
       w,
       h,
       rotated,
+      grain: item.grain,
     });
     usedArea += w * h;
 

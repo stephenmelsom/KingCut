@@ -22,6 +22,7 @@ export function PanelsTable() {
             <th>Width</th>
             <th>Qty</th>
             <th>Label</th>
+            <th title="Has grain (must align with stock grain)">G</th>
             <th aria-label="actions" />
           </tr>
         </thead>
@@ -65,6 +66,17 @@ export function PanelsTable() {
                   }
                 />
               </td>
+              <td className="cell-check">
+                <input
+                  type="checkbox"
+                  aria-label="Grain"
+                  title="Panel has grain"
+                  checked={!!p.grain}
+                  onChange={(e) =>
+                    updatePanel(p.id, { grain: e.target.checked })
+                  }
+                />
+              </td>
               <td>
                 <button
                   className="btn-icon"
@@ -79,7 +91,7 @@ export function PanelsTable() {
           ))}
           {panels.length === 0 && (
             <tr>
-              <td colSpan={5} className="empty">
+              <td colSpan={6} className="empty">
                 No panels yet.
               </td>
             </tr>

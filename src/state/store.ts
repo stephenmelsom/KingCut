@@ -39,13 +39,28 @@ const defaultOptions: Options = {
   singleSheet: false,
   showLabels: true,
   priority: 'waste',
+  respectGrain: false,
 };
 
 function blankPanel(): Panel {
-  return { id: nanoid(8), length: 0, width: 0, qty: 1, label: '' };
+  return {
+    id: nanoid(8),
+    length: 0,
+    width: 0,
+    qty: 1,
+    label: '',
+    grain: false,
+  };
 }
 function blankSheet(): StockSheet {
-  return { id: nanoid(8), length: 0, width: 0, qty: 1, label: '' };
+  return {
+    id: nanoid(8),
+    length: 0,
+    width: 0,
+    qty: 1,
+    label: '',
+    grain: false,
+  };
 }
 
 function referenceSeed(): Pick<State, 'panels' | 'stock'> {

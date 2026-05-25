@@ -16,6 +16,8 @@ type Item = {
   w: number;
   h: number;
   allowRotation: boolean;
+  /** When true and respectGrain is on, this item only fits on grained stock. */
+  grain: boolean;
 };
 
 type SortName =
@@ -50,13 +52,18 @@ export function optimize(
     const w = Number(p.length);
     const h = Number(p.width);
     if (!isFinite(w) || !isFinite(h) || w <= 0 || h <= 0) continue;
+    const hasGrain = !!p.grain;
+    // Grained panels cannot rotate when grain is being respected.
+    const allowRotation =
+      options.allowRotation && !(options.respectGrain && hasGrain);
     for (let i = 0; i < qty; i++) {
       items.push({
         panelId: p.id,
         label: p.label,
         w,
         h,
-        allowRotation: options.allowRotation,
+        allowRotation,
+        grain: hasGrain,
       });
     }
   }
@@ -140,11 +147,28 @@ function packAcrossSheets(
 
   for (let i = 0; i < maxSheets && remaining.length > 0; i++) {
     const { sheet } = stockList[i];
+    const sheetHasGrain = !!sheet.grain;
+    // When grain is being respected, don't swap a grained sheet's orientation
+    // — grain is a physical property of the stock, not a free variable.
+    const effectiveSwap = options.respectGrain && sheetHasGrain ? false : swapSheet;
     const rawW = Number(sheet.length);
     const rawH = Number(sheet.width);
-    const sheetW = swapSheet ? rawH : rawW;
-    const sheetH = swapSheet ? rawW : rawH;
-    const packed = packBin(sheetW, sheetH, remaining, options.kerf, fit, split);
+    const sheetW = effectiveSwap ? rawH : rawW;
+    const sheetH = effectiveSwap ? rawW : rawH;
+
+    // Partition the queue: when respecting grain, grained items can only be
+    // placed on grained stock.
+    const eligible: Item[] = [];
+    const ineligible: Item[] = [];
+    for (const it of remaining) {
+      if (options.respectGrain && it.grain && !sheetHasGrain) {
+        ineligible.push(it);
+      } else {
+        eligible.push(it);
+      }
+    }
+
+    const packed = packBin(sheetW, sheetH, eligible, options.kerf, fit, split);
     if (packed.placements.length === 0) {
       // Nothing fit on this sheet — likely all items larger than sheet, give up.
       break;
@@ -163,7 +187,9 @@ function packAcrossSheets(
       wastedArea: sheetW * sheetH - packed.usedArea,
       cutLength,
     });
-    remaining = packed.unplaced;
+    // Carry forward what didn't fit on this sheet plus anything that was
+    // ineligible for this sheet's grain — both should get a chance on later sheets.
+    remaining = [...packed.unplaced, ...ineligible];
   }
 
   const totals = {

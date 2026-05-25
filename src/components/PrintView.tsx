@@ -234,6 +234,7 @@ function PrintPlacement({
         stroke="#333"
         strokeWidth={0.8}
       />
+      {p.grain && <PrintGrainLines x={x} y={y} w={w} h={h} rotated={p.rotated} />}
       <text
         x={x + w / 2}
         y={y + dimFont + 2}
@@ -264,6 +265,40 @@ function PrintPlacement({
         >
           {p.label}
         </text>
+      )}
+    </g>
+  );
+}
+
+function PrintGrainLines({
+  x,
+  y,
+  w,
+  h,
+  rotated,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotated: boolean;
+}) {
+  const horizontal = !rotated;
+  const spacing = 7;
+  const lines: number[] = [];
+  if (horizontal) {
+    for (let yy = spacing; yy < h; yy += spacing) lines.push(yy);
+  } else {
+    for (let xx = spacing; xx < w; xx += spacing) lines.push(xx);
+  }
+  return (
+    <g stroke="#888" strokeWidth={0.4}>
+      {lines.map((p, i) =>
+        horizontal ? (
+          <line key={i} x1={x} y1={y + p} x2={x + w} y2={y + p} />
+        ) : (
+          <line key={i} x1={x + p} y1={y} x2={x + p} y2={y + h} />
+        ),
       )}
     </g>
   );

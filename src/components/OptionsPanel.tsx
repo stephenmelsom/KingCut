@@ -74,6 +74,15 @@ export function OptionsPanel() {
             onChange={(e) => setOptions({ singleSheet: e.target.checked })}
           />
         </label>
+        <label className="option-row">
+          <span>Consider grain direction</span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={options.respectGrain}
+            onChange={(e) => setOptions({ respectGrain: e.target.checked })}
+          />
+        </label>
       </div>
     </section>
   );

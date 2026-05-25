@@ -156,6 +156,9 @@ function PlacementRect({
         stroke="#3a3a3a"
         strokeWidth={1}
       />
+      {p.grain && (
+        <GrainLines x={x} y={y} w={w} h={h} rotated={p.rotated} />
+      )}
       {/* Top edge: width label */}
       <text
         x={x + w / 2}
@@ -254,6 +257,42 @@ function DimensionAxis({
       >
         {value}
       </text>
+    </g>
+  );
+}
+
+function GrainLines({
+  x,
+  y,
+  w,
+  h,
+  rotated,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotated: boolean;
+}) {
+  // Grain runs along the panel's length axis. After rotation, that axis
+  // swaps from horizontal to vertical.
+  const horizontal = !rotated;
+  const spacing = 8;
+  const lines: number[] = [];
+  if (horizontal) {
+    for (let yy = spacing; yy < h; yy += spacing) lines.push(yy);
+  } else {
+    for (let xx = spacing; xx < w; xx += spacing) lines.push(xx);
+  }
+  return (
+    <g stroke="rgba(60,40,20,0.18)" strokeWidth={0.5}>
+      {lines.map((p, i) =>
+        horizontal ? (
+          <line key={i} x1={x} y1={y + p} x2={x + w} y2={y + p} />
+        ) : (
+          <line key={i} x1={x + p} y1={y} x2={x + p} y2={y + h} />
+        ),
+      )}
     </g>
   );
 }

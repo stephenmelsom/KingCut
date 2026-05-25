@@ -22,6 +22,7 @@ export function StockSheetsTable() {
             <th>Width</th>
             <th>Qty</th>
             <th>Label</th>
+            <th title="Stock has grain (running along length)">G</th>
             <th aria-label="actions" />
           </tr>
         </thead>
@@ -65,6 +66,17 @@ export function StockSheetsTable() {
                   }
                 />
               </td>
+              <td className="cell-check">
+                <input
+                  type="checkbox"
+                  aria-label="Grain"
+                  title="Stock has grain along its length"
+                  checked={!!s.grain}
+                  onChange={(e) =>
+                    updateSheet(s.id, { grain: e.target.checked })
+                  }
+                />
+              </td>
               <td>
                 <button
                   className="btn-icon"
@@ -79,7 +91,7 @@ export function StockSheetsTable() {
           ))}
           {stock.length === 0 && (
             <tr>
-              <td colSpan={5} className="empty">
+              <td colSpan={6} className="empty">
                 No stock sheets yet.
               </td>
             </tr>
