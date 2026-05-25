@@ -38,6 +38,7 @@ const defaultOptions: Options = {
   allowRotation: true,
   singleSheet: false,
   showLabels: true,
+  priority: 'waste',
 };
 
 function blankPanel(): Panel {
@@ -60,7 +61,13 @@ function referenceSeed(): Pick<State, 'panels' | 'stock'> {
 
 const initial: State = (() => {
   const persisted = loadState();
-  if (persisted) return persisted;
+  if (persisted) {
+    // Merge defaults so older persisted state picks up new options fields.
+    return {
+      ...persisted,
+      options: { ...defaultOptions, ...persisted.options },
+    };
+  }
   const seed = referenceSeed();
   return {
     panels: seed.panels,

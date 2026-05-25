@@ -1,6 +1,7 @@
 import { packBin, type SplitRule } from './guillotine';
 import type {
   Cut,
+  OptimizationPriority,
   Options,
   Panel,
   Placement,
@@ -79,7 +80,7 @@ export function optimize(
             split,
             swapSheet,
           );
-          if (better(r, best)) best = r;
+          if (better(r, best, options.priority)) best = r;
         }
       }
     }
@@ -186,16 +187,52 @@ function packAcrossSheets(
   };
 }
 
-function better(a: Result, b: Result | null): boolean {
+function better(
+  a: Result,
+  b: Result | null,
+  priority: OptimizationPriority,
+): boolean {
   if (!b) return true;
-  // Fewer unplaced wins.
+  // Placing every panel is always the first concern.
   if (a.unplaced.length !== b.unplaced.length)
     return a.unplaced.length < b.unplaced.length;
-  // Fewer sheets used wins.
-  if (a.totals.sheetsUsed !== b.totals.sheetsUsed)
-    return a.totals.sheetsUsed < b.totals.sheetsUsed;
-  // Less waste wins.
-  return a.totals.wastedArea < b.totals.wastedArea;
+  const order = criteriaFor(priority);
+  for (const key of order) {
+    const av = metric(a, key);
+    const bv = metric(b, key);
+    if (av !== bv) return av < bv;
+  }
+  return false;
+}
+
+type Metric = 'waste' | 'sheets' | 'cuts' | 'cut-length';
+
+function criteriaFor(priority: OptimizationPriority): Metric[] {
+  // The chosen priority leads. The remaining metrics are tiebreakers in a
+  // sensible order that keeps results stable across priority choices.
+  switch (priority) {
+    case 'waste':
+      return ['waste', 'sheets', 'cuts', 'cut-length'];
+    case 'sheets':
+      return ['sheets', 'waste', 'cuts', 'cut-length'];
+    case 'cuts':
+      return ['cuts', 'cut-length', 'waste', 'sheets'];
+    case 'cut-length':
+      return ['cut-length', 'cuts', 'waste', 'sheets'];
+  }
+}
+
+function metric(r: Result, key: Metric): number {
+  switch (key) {
+    case 'waste':
+      return r.totals.wastedArea;
+    case 'sheets':
+      return r.totals.sheetsUsed;
+    case 'cuts':
+      return r.totals.cuts;
+    case 'cut-length':
+      return r.totals.cutLength;
+  }
 }
 
 function emptyResult(items: Item[]): Result {

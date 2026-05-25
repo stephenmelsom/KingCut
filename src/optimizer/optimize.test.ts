@@ -7,6 +7,7 @@ const defaultOptions: Options = {
   allowRotation: true,
   singleSheet: false,
   showLabels: true,
+  priority: 'waste',
 };
 
 describe('optimize', () => {

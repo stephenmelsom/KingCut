@@ -1,9 +1,18 @@
 import { useStore } from '../state/store';
+import type { OptimizationPriority } from '../optimizer/types';
 import { fmt, fmtArea, fmtPct } from '../utils/format';
+
+const PRIORITY_LABEL: Record<OptimizationPriority, string> = {
+  waste: 'Least wasted area',
+  sheets: 'Fewest sheets used',
+  cuts: 'Fewest cuts',
+  'cut-length': 'Shortest cut length',
+};
 
 export function Stats() {
   const result = useStore((s) => s.result);
   const kerf = useStore((s) => s.options.kerf);
+  const priority = useStore((s) => s.options.priority);
   const unit = useStore((s) => s.unit);
 
   if (!result || result.sheets.length === 0) return null;
@@ -39,6 +48,8 @@ export function Stats() {
           <dd>{fmt(totals.cutLength, unit)}</dd>
           <dt>Kerf thickness</dt>
           <dd>{fmt(kerf, unit)}</dd>
+          <dt>Optimization priority</dt>
+          <dd>{PRIORITY_LABEL[priority]}</dd>
         </dl>
       </section>
 

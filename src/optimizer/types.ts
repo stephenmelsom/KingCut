@@ -14,11 +14,18 @@ export type StockSheet = {
   label?: string;
 };
 
+export type OptimizationPriority =
+  | 'waste'
+  | 'sheets'
+  | 'cuts'
+  | 'cut-length';
+
 export type Options = {
   kerf: number;
   allowRotation: boolean;
   singleSheet: boolean;
   showLabels: boolean;
+  priority: OptimizationPriority;
 };
 
 export type Placement = {
