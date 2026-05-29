@@ -141,6 +141,8 @@ function PrintSheet({
       <div className="print-svg-wrap">
         <svg
           className="print-svg"
+          width={totalW}
+          height={totalH}
           viewBox={`0 0 ${totalW} ${totalH}`}
           preserveAspectRatio="xMidYMid meet"
         >

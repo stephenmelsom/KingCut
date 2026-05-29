@@ -851,11 +851,15 @@ input[type="text"]:focus {
     justify-content: center;
   }
   .print-svg {
-    /* Constrain so the SVG + headers + table fit on one page. */
+    /* Constrain so the SVG + headers + table fit on one page. The explicit
+       width/height attributes on the element give it an intrinsic size and
+       aspect ratio; max-width/height then scale it down to fit the page.
+       min-width: 0 lets it shrink inside the centering flex wrap. */
     max-width: 100%;
     max-height: 7.5in;
     width: auto;
     height: auto;
+    min-width: 0;
   }
   .print-table {
     width: 100%;
