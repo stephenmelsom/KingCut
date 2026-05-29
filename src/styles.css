@@ -544,17 +544,19 @@ input[type="text"]:focus {
 .data-table th:nth-child(1),
 .data-table th:nth-child(2),
 .data-table th:nth-child(3),
+.data-table th:nth-child(4),
 .data-table td:nth-child(1),
 .data-table td:nth-child(2),
-.data-table td:nth-child(3) {
-  width: 66px;
-}
-.data-table th:nth-child(4),
+.data-table td:nth-child(3),
 .data-table td:nth-child(4) {
-  width: auto;
+  width: 66px;
 }
 .data-table th:nth-child(5),
 .data-table td:nth-child(5) {
+  width: auto;
+}
+.data-table th:nth-child(6),
+.data-table td:nth-child(6) {
   width: 30px;
   text-align: center;
 }
