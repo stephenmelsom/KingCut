@@ -26,6 +26,59 @@ describe('furniture grid generation', () => {
     ]);
   });
 
+  it('adds a recessed toe board and shrinks the usable interior height', () => {
+    const parts = generateFurnitureParts({
+      ...defaultFurnitureDesign,
+      width: 30,
+      height: 34.5,
+      depth: 24,
+      materialThickness: 0.75,
+      includeBack: false,
+      includeToeKick: true,
+      toeKickHeight: 4,
+      toeKickDepth: 3,
+      // interior height = 34.5 - 2*0.75 - 4 = 29
+      rows: [{ id: 'row-1', height: 29 }],
+      columns: [{ id: 'col-1', width: 28.5 }],
+      cells: [[{ kind: 'shelf', door: 'none' }]],
+    });
+
+    expect(parts).toContainEqual({
+      length: 28.5,
+      width: 4,
+      qty: 1,
+      label: 'Toe kick board',
+    });
+    // Cabinet sides still run full height to the floor.
+    expect(parts).toContainEqual({
+      length: 34.5,
+      width: 24,
+      qty: 2,
+      label: 'Cabinet side',
+    });
+  });
+
+  it('rejects a toe kick taller than the available interior', () => {
+    expect(
+      getFurnitureDesignValidationError({
+        ...defaultFurnitureDesign,
+        includeToeKick: true,
+        toeKickHeight: 100,
+      }),
+    ).toMatch(/interior dimensions/i);
+  });
+
+  it('rejects a toe kick setback that reaches the cabinet depth', () => {
+    expect(
+      getFurnitureDesignValidationError({
+        ...defaultFurnitureDesign,
+        depth: 24,
+        includeToeKick: true,
+        toeKickDepth: 24,
+      }),
+    ).toMatch(/setback/i);
+  });
+
   it('rejects row and column sums that do not match the interior', () => {
     expect(
       getFurnitureDesignValidationError({

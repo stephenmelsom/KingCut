@@ -20,6 +20,9 @@ export const defaultFurnitureDesign: FurnitureDesign = {
   materialThickness: 0.75,
   includeBack: true,
   backThickness: 0.25,
+  includeToeKick: false,
+  toeKickHeight: 4,
+  toeKickDepth: 3,
   rows: [
     { id: 'row-1', height: 15.75 },
     { id: 'row-2', height: 15.75 },
@@ -47,9 +50,17 @@ export function normalizeFurnitureDesign(
     1,
     finitePositive(merged.width, defaultFurnitureDesign.width) - 2 * t,
   );
+  const toeKickReserve = merged.includeToeKick
+    ? Math.max(
+        0,
+        Number.isFinite(merged.toeKickHeight)
+          ? (merged.toeKickHeight as number)
+          : defaultFurnitureDesign.toeKickHeight,
+      )
+    : 0;
   const interiorHeight = Math.max(
     1,
-    finitePositive(merged.height, defaultFurnitureDesign.height) - 2 * t,
+    finitePositive(merged.height, defaultFurnitureDesign.height) - 2 * t - toeKickReserve,
   );
 
   const rows = Array.isArray(design?.rows)
@@ -66,6 +77,9 @@ export function normalizeFurnitureDesign(
     materialThickness: merged.materialThickness,
     includeBack: merged.includeBack,
     backThickness: merged.backThickness,
+    includeToeKick: merged.includeToeKick,
+    toeKickHeight: merged.toeKickHeight,
+    toeKickDepth: merged.toeKickDepth,
     rows,
     columns,
     cells: normalizeCells(design, rows.length, columns.length),
@@ -81,9 +95,8 @@ export function generateFurnitureParts(
 ): FurniturePartDraft[] {
   validateFurnitureDesign(design);
 
-  const t = design.materialThickness;
-  const interiorWidth = design.width - 2 * t;
-  const interiorHeight = design.height - 2 * t;
+  const interiorWidth = getInteriorWidth(design);
+  const interiorHeight = getInteriorHeight(design);
   const parts: FurniturePartDraft[] = [
     {
       length: design.height,
@@ -105,6 +118,15 @@ export function generateFurnitureParts(
       width: design.height,
       qty: 1,
       label: 'Cabinet back',
+    });
+  }
+
+  if (design.includeToeKick) {
+    parts.push({
+      length: interiorWidth,
+      width: design.toeKickHeight,
+      qty: 1,
+      label: 'Toe kick board',
     });
   }
 
@@ -181,7 +203,8 @@ export function getInteriorWidth(design: FurnitureDesign) {
 }
 
 export function getInteriorHeight(design: FurnitureDesign) {
-  return design.height - 2 * design.materialThickness;
+  const toeKick = design.includeToeKick ? Math.max(0, design.toeKickHeight) : 0;
+  return design.height - 2 * design.materialThickness - toeKick;
 }
 
 export function getGridClearWidth(design: FurnitureDesign) {
@@ -209,6 +232,8 @@ function validateFurnitureDesign(design: FurnitureDesign) {
     'drawerBottomThickness',
     'drawerSideClearance',
     'drawerFrontGap',
+    'toeKickHeight',
+    'toeKickDepth',
   ];
 
   for (const field of numericFields) {
@@ -232,6 +257,12 @@ function validateFurnitureDesign(design: FurnitureDesign) {
   }
   if (design.drawerSideClearance < 0 || design.drawerFrontGap < 0) {
     throw new Error('Drawer clearances and gaps cannot be negative.');
+  }
+  if (design.toeKickHeight < 0 || design.toeKickDepth < 0) {
+    throw new Error('Toe kick dimensions cannot be negative.');
+  }
+  if (design.includeToeKick && design.toeKickDepth >= design.depth) {
+    throw new Error('Toe kick setback must be less than the cabinet depth.');
   }
 
   const interiorWidth = getInteriorWidth(design);

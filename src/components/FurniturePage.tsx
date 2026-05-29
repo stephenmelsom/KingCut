@@ -83,6 +83,11 @@ export function FurniturePage() {
     updateFurnitureDesign({ cells });
   };
 
+  const setToeKick = (includeToeKick: boolean) => {
+    const rows = distributeRows({ ...design, includeToeKick }, design.rows.length);
+    updateFurnitureDesign({ includeToeKick, rows });
+  };
+
   const updateCutlist = () => {
     if (validationError) return;
     replacePanelsWithFurnitureParts();
@@ -136,6 +141,34 @@ export function FurniturePage() {
                 step: 0.0625,
                 min: 0,
               }}
+              design={design}
+              onChange={updateNumber}
+            />
+          </div>
+        </div>
+
+        <div className="furniture-section">
+          <div className="section-heading">
+            <h2>Toe kick</h2>
+            <span className="muted">Recessed front, raises the deck</span>
+          </div>
+          <div className="furniture-grid">
+            <label className="option-row furniture-switch">
+              <span>Include toe kick</span>
+              <input
+                type="checkbox"
+                role="switch"
+                checked={design.includeToeKick}
+                onChange={(event) => setToeKick(event.target.checked)}
+              />
+            </label>
+            <FurnitureNumberField
+              field={{ key: 'toeKickHeight', label: 'Height', step: 0.125, min: 0 }}
+              design={design}
+              onChange={updateNumber}
+            />
+            <FurnitureNumberField
+              field={{ key: 'toeKickDepth', label: 'Setback', step: 0.125, min: 0 }}
               design={design}
               onChange={updateNumber}
             />

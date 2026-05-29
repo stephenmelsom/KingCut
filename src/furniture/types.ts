@@ -5,6 +5,9 @@ export type FurnitureDesign = {
   materialThickness: number;
   includeBack: boolean;
   backThickness: number;
+  includeToeKick: boolean;
+  toeKickHeight: number;
+  toeKickDepth: number;
   rows: FurnitureRow[];
   columns: FurnitureColumn[];
   cells: FurnitureCell[][];

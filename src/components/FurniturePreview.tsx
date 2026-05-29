@@ -92,10 +92,11 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
   const w = design.width;
   const h = design.height;
   const d = design.depth;
+  const toeKick = design.includeToeKick ? Math.max(0, design.toeKickHeight) : 0;
   const innerW = w - 2 * t;
-  const innerH = h - 2 * t;
+  const innerH = h - 2 * t - toeKick;
   const originX = -innerW / 2;
-  const originY = -innerH / 2;
+  const originY = -h / 2 + toeKick + t;
 
   const carcassMaterial = new THREE.MeshStandardMaterial({
     color: 0xcbd5e1,
@@ -137,7 +138,16 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
   addBox(scene, [-w / 2 + t / 2, 0, 0], [t, h, d], carcassMaterial);
   addBox(scene, [w / 2 - t / 2, 0, 0], [t, h, d], carcassMaterial);
   addBox(scene, [0, h / 2 - t / 2, 0], [innerW, t, d], carcassMaterial);
-  addBox(scene, [0, -h / 2 + t / 2, 0], [innerW, t, d], carcassMaterial);
+  addBox(scene, [0, -h / 2 + toeKick + t / 2, 0], [innerW, t, d], carcassMaterial);
+
+  if (toeKick > 0) {
+    addBox(
+      scene,
+      [0, -h / 2 + toeKick / 2, d / 2 - design.toeKickDepth - t / 2],
+      [innerW, toeKick, t],
+      carcassMaterial,
+    );
+  }
 
   if (design.includeBack) {
     addBox(
@@ -151,7 +161,7 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
   let x = originX;
   for (let columnIndex = 0; columnIndex < design.columns.length - 1; columnIndex += 1) {
     x += design.columns[columnIndex].width;
-    addBox(scene, [x + t / 2, 0, 0], [t, innerH, d], dividerMaterial);
+    addBox(scene, [x + t / 2, originY + innerH / 2, 0], [t, innerH, d], dividerMaterial);
     x += t;
   }
 
