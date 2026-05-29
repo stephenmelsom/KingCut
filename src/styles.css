@@ -847,19 +847,17 @@ input[type="text"]:focus {
   }
   .print-svg-wrap {
     margin: 4px 0;
-    display: flex;
-    justify-content: center;
   }
   .print-svg {
-    /* Constrain so the SVG + headers + table fit on one page. The explicit
-       width/height attributes on the element give it an intrinsic size and
-       aspect ratio; max-width/height then scale it down to fit the page.
-       min-width: 0 lets it shrink inside the centering flex wrap. */
-    max-width: 100%;
-    max-height: 7.5in;
-    width: auto;
+    /* Behave like the table below: a plain block that fills the page content
+       width. The width/height attributes give it an aspect ratio, so height
+       follows automatically and the viewBox scales the drawing to fit. A flex
+       wrapper grows wider than the page in print and pushes the SVG off the
+       edge, so we deliberately avoid one here. */
+    display: block;
+    width: 100%;
     height: auto;
-    min-width: 0;
+    max-height: 7.5in;
   }
   .print-table {
     width: 100%;
