@@ -128,7 +128,7 @@ function PrintSheet({
         <h2>
           Sheet {sheet.sheetIndex + 1}
           <span className="muted">
-            {' '}— {fmt(sheetW, unit)} × {fmt(sheetH, unit)} {unit}
+            {' '}— {fmt(sheetW, unit)} × {fmt(sheetH, unit)} × {fmt(sheet.thickness, unit)} {unit}
           </span>
         </h2>
         <p className="print-meta">

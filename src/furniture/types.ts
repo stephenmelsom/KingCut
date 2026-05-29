@@ -37,4 +37,5 @@ export type FurniturePartDraft = {
   width: number;
   qty: number;
   label: string;
+  thickness: number;
 };

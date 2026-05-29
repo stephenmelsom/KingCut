@@ -12,7 +12,7 @@ export type InputSnapshot = {
 };
 
 const HASH_PREFIX = '#project=';
-const CSV_COLUMNS = ['type', 'length', 'width', 'qty', 'label', 'grain'];
+const CSV_COLUMNS = ['type', 'length', 'width', 'qty', 'label', 'grain', 'thickness'];
 
 export function exportCsv(snapshot: Pick<InputSnapshot, 'panels' | 'stock'>) {
   const rows = [
@@ -43,6 +43,7 @@ export function importCsv(csv: string): Pick<InputSnapshot, 'panels' | 'stock'> 
   const qtyIndex = index('qty');
   const labelIndex = index('label');
   const grainIndex = index('grain');
+  const thicknessIndex = index('thickness');
 
   if (typeIndex === -1 || lengthIndex === -1 || widthIndex === -1) {
     throw new Error('CSV must include type, length, and width columns.');
@@ -57,6 +58,8 @@ export function importCsv(csv: string): Pick<InputSnapshot, 'panels' | 'stock'> 
     const qty = qtyIndex === -1 ? 1 : Math.max(0, Math.floor(numberCell(row, qtyIndex) || 1));
     const label = labelIndex === -1 ? '' : cell(row, labelIndex).trim();
     const grain = grainIndex !== -1 && booleanCell(row, grainIndex);
+    const thickness =
+      thicknessIndex === -1 ? 0.75 : numberCell(row, thicknessIndex) || 0.75;
 
     if (type !== 'panel' && type !== 'stock') continue;
     if (!Number.isFinite(length) || !Number.isFinite(width)) continue;
@@ -68,6 +71,7 @@ export function importCsv(csv: string): Pick<InputSnapshot, 'panels' | 'stock'> 
       qty,
       label,
       grain,
+      thickness,
     };
     if (type === 'panel') panels.push(base);
     else stock.push(base);
@@ -117,6 +121,7 @@ function rowFor(type: 'panel' | 'stock', item: Panel | StockSheet): string[] {
     String(item.qty),
     item.label ?? '',
     item.grain ? 'true' : 'false',
+    String(item.thickness ?? 0.75),
   ];
 }
 

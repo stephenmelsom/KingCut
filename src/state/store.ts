@@ -84,6 +84,7 @@ function blankPanel(): Panel {
     qty: 1,
     label: '',
     grain: false,
+    thickness: 0.75,
   };
 }
 function blankSheet(): StockSheet {
@@ -94,6 +95,7 @@ function blankSheet(): StockSheet {
     qty: 1,
     label: '',
     grain: false,
+    thickness: 0.75,
   };
 }
 
@@ -317,6 +319,7 @@ export const useStore = create<State & Actions>((set, get) => {
           qty: part.qty,
           label: part.label,
           grain: false,
+          thickness: part.thickness,
         })),
         result: null,
       });

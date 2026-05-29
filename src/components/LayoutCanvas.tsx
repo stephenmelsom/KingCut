@@ -135,7 +135,7 @@ function SheetView({
       <figcaption>
         Sheet {sheet.sheetIndex + 1}{' '}
         <span className="muted">
-          {fmt(sheetW, unit)} × {fmt(sheetH, unit)}
+          {fmt(sheetW, unit)} × {fmt(sheetH, unit)} × {fmt(sheet.thickness, unit)}
         </span>
       </figcaption>
       <svg

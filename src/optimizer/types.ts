@@ -6,6 +6,8 @@ export type Panel = {
   label?: string;
   /** True if this panel has grain that must align with the stock's grain. */
   grain?: boolean;
+  /** Material thickness. Panels only nest on stock of the same thickness. */
+  thickness?: number;
 };
 
 export type StockSheet = {
@@ -16,6 +18,8 @@ export type StockSheet = {
   label?: string;
   /** True if this stock sheet has grain (running along its length axis). */
   grain?: boolean;
+  /** Material thickness. Only panels of the same thickness nest on this stock. */
+  thickness?: number;
 };
 
 export type OptimizationPriority =
@@ -63,6 +67,8 @@ export type SheetLayout = {
   sheetIndex: number;
   sheetW: number;
   sheetH: number;
+  /** Material thickness of the stock sheet used for this layout. */
+  thickness: number;
   placements: Placement[];
   cuts: Cut[];
   usedArea: number;

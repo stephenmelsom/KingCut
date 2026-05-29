@@ -23,6 +23,9 @@ export function StockSheetsTable() {
             <th>Length</th>
             <th>Width</th>
             <th>Qty</th>
+            <th title="Material thickness — only panels of the same thickness nest on this stock">
+              Thick
+            </th>
             <th>Label</th>
             <th title="Stock grain runs along sheet length">G</th>
             <th aria-label="actions" />
@@ -56,6 +59,15 @@ export function StockSheetsTable() {
                   min={0}
                   ariaLabel="Qty"
                   onChange={(v) => updateSheet(s.id, { qty: v })}
+                />
+              </td>
+              <td>
+                <EditableNumber
+                  value={s.thickness ?? 0.75}
+                  step={0.0625}
+                  min={0}
+                  ariaLabel="Thickness"
+                  onChange={(v) => updateSheet(s.id, { thickness: v })}
                 />
               </td>
               <td>
@@ -93,7 +105,7 @@ export function StockSheetsTable() {
           ))}
           {stock.length === 0 && (
             <tr>
-              <td colSpan={6} className="empty">
+              <td colSpan={7} className="empty">
                 No stock sheets yet.
               </td>
             </tr>

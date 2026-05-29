@@ -164,6 +164,60 @@ describe('optimize', () => {
     });
   });
 
+  describe('material thickness', () => {
+    it('nests each thickness only on stock of the same thickness', () => {
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 10, qty: 1, label: 'thick', thickness: 0.75 },
+        { id: 'p2', length: 10, width: 10, qty: 1, label: 'thin', thickness: 0.25 },
+      ];
+      const stock: StockSheet[] = [
+        { id: 's1', length: 20, width: 20, qty: 1, thickness: 0.75 },
+        { id: 's2', length: 20, width: 20, qty: 1, thickness: 0.25 },
+      ];
+      const result = optimize(panels, stock, defaultOptions);
+
+      expect(result.unplaced).toEqual([]);
+      expect(result.sheets).toHaveLength(2);
+      // Each sheet carries its stock thickness and only holds matching panels.
+      for (const sheet of result.sheets) {
+        expect(sheet.placements).toHaveLength(1);
+        expect(sheet.placements[0].label).toBe(
+          sheet.thickness === 0.75 ? 'thick' : 'thin',
+        );
+      }
+      // Sheets are re-indexed sequentially across thickness groups.
+      expect(result.sheets.map((s) => s.sheetIndex)).toEqual([0, 1]);
+      expect(result.sheets[0].cuts.every((c) => c.sheetIndex === 0)).toBe(true);
+      expect(result.sheets[1].cuts.every((c) => c.sheetIndex === 1)).toBe(true);
+    });
+
+    it('leaves a panel unplaced when no stock matches its thickness', () => {
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 10, qty: 1, label: 'A', thickness: 0.5 },
+      ];
+      const stock: StockSheet[] = [
+        { id: 's1', length: 20, width: 20, qty: 1, thickness: 0.75 },
+      ];
+      const result = optimize(panels, stock, defaultOptions);
+
+      expect(result.sheets).toHaveLength(0);
+      expect(result.unplaced).toHaveLength(1);
+    });
+
+    it('treats missing thickness as a single default group', () => {
+      // No thickness anywhere — everything shares the default and nests together.
+      const panels: Panel[] = [
+        { id: 'p1', length: 10, width: 5, qty: 2, label: 'A' },
+      ];
+      const stock: StockSheet[] = [{ id: 's1', length: 20, width: 10, qty: 1 }];
+      const result = optimize(panels, stock, defaultOptions);
+
+      expect(result.sheets).toHaveLength(1);
+      expect(result.unplaced).toEqual([]);
+      expect(result.sheets[0].thickness).toBe(0.75);
+    });
+  });
+
   it('respects singleSheet by not allocating more sheets', () => {
     const panels: Panel[] = [
       { id: 'p1', length: 50, width: 10, qty: 4, label: 'A' },
