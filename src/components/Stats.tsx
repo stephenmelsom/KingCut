@@ -61,6 +61,8 @@ export function Stats() {
             <dd>
               {fmt(s.sheetW, unit)}×{fmt(s.sheetH, unit)}
             </dd>
+            <dt>Thickness</dt>
+            <dd>{fmt(s.thickness, unit)}</dd>
             <dt>Used area</dt>
             <dd>
               {fmtArea(s.usedArea, unit)}{' '}

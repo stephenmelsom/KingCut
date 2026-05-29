@@ -41,8 +41,85 @@ const SORTS: SortName[] = [
 const FITS: FitName[] = ['best-area', 'best-short-side', 'best-long-side'];
 const SPLITS: SplitRule[] = ['sas', 'las'];
 const THOROUGH_ORDER_LIMIT = 16;
+const DEFAULT_THICKNESS = 0.75;
 
+/** Resolve a panel/stock thickness, falling back to a sensible default. */
+function normalizeThickness(thickness?: number): number {
+  return Number.isFinite(thickness) && (thickness as number) > 0
+    ? (thickness as number)
+    : DEFAULT_THICKNESS;
+}
+
+/** Stable grouping key so equal thicknesses nest together despite float noise. */
+function thicknessKey(thickness?: number): string {
+  return String(Math.round(normalizeThickness(thickness) * 1e4) / 1e4);
+}
+
+/**
+ * Panels can only be cut from stock of the same material thickness, so the
+ * problem splits into independent per-thickness nests. We group panels and
+ * stock by thickness, solve each group on its own, and merge the layouts.
+ * A panel thickness with no matching stock simply yields unplaced panels.
+ */
 export function optimize(
+  panels: Panel[],
+  stock: StockSheet[],
+  options: Options,
+): Result {
+  const panelGroups = new Map<string, Panel[]>();
+  for (const p of panels) {
+    const key = thicknessKey(p.thickness);
+    const group = panelGroups.get(key);
+    if (group) group.push(p);
+    else panelGroups.set(key, [p]);
+  }
+
+  const stockGroups = new Map<string, StockSheet[]>();
+  for (const s of stock) {
+    const key = thicknessKey(s.thickness);
+    const group = stockGroups.get(key);
+    if (group) group.push(s);
+    else stockGroups.set(key, [s]);
+  }
+
+  // Thickest material first for a stable, intuitive sheet order.
+  const keys = [...panelGroups.keys()].sort((a, b) => Number(b) - Number(a));
+  const results = keys.map((key) =>
+    optimizeGroup(panelGroups.get(key)!, stockGroups.get(key) ?? [], options),
+  );
+  return mergeResults(results);
+}
+
+/** Concatenate per-thickness layouts into one result, re-indexing sheets. */
+function mergeResults(results: Result[]): Result {
+  const sheets: SheetLayout[] = [];
+  const unplaced: Result['unplaced'] = [];
+  for (const r of results) {
+    for (const sheet of r.sheets) {
+      const sheetIndex = sheets.length;
+      sheets.push({
+        ...sheet,
+        sheetIndex,
+        cuts: sheet.cuts.map((cut) => ({ ...cut, sheetIndex })),
+      });
+    }
+    unplaced.push(...r.unplaced);
+  }
+  return {
+    sheets,
+    unplaced,
+    totals: {
+      usedArea: sheets.reduce((s, x) => s + x.usedArea, 0),
+      wastedArea: sheets.reduce((s, x) => s + x.wastedArea, 0),
+      totalArea: sheets.reduce((s, x) => s + x.sheetW * x.sheetH, 0),
+      cuts: sheets.reduce((s, x) => s + x.cuts.length, 0),
+      cutLength: sheets.reduce((s, x) => s + x.cutLength, 0),
+      sheetsUsed: sheets.length,
+    },
+  };
+}
+
+function optimizeGroup(
   panels: Panel[],
   stock: StockSheet[],
   options: Options,
@@ -224,6 +301,7 @@ function packAcrossSheets(
       sheetIndex: sheets.length,
       sheetW,
       sheetH,
+      thickness: normalizeThickness(sheet.thickness),
       placements: packed.placements,
       cuts,
       usedArea: packed.usedArea,

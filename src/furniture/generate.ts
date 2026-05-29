@@ -103,12 +103,14 @@ export function generateFurnitureParts(
       width: design.depth,
       qty: 2,
       label: 'Cabinet side',
+      thickness: design.materialThickness,
     },
     {
       length: interiorWidth,
       width: design.depth,
       qty: 2,
       label: 'Cabinet top/bottom',
+      thickness: design.materialThickness,
     },
   ];
 
@@ -118,6 +120,7 @@ export function generateFurnitureParts(
       width: design.height,
       qty: 1,
       label: 'Cabinet back',
+      thickness: design.backThickness,
     });
   }
 
@@ -127,6 +130,7 @@ export function generateFurnitureParts(
       width: design.toeKickHeight,
       qty: 1,
       label: 'Toe kick board',
+      thickness: design.materialThickness,
     });
   }
 
@@ -136,6 +140,7 @@ export function generateFurnitureParts(
       width: design.depth,
       qty: 1,
       label: `Vertical divider ${columnIndex}`,
+      thickness: design.materialThickness,
     });
   }
 
@@ -146,6 +151,7 @@ export function generateFurnitureParts(
         width: design.depth,
         qty: 1,
         label: `Column ${columnIndex + 1} horizontal divider ${rowIndex}`,
+        thickness: design.materialThickness,
       });
     }
   }
@@ -160,6 +166,7 @@ export function generateFurnitureParts(
         width: Math.max(row.height - design.drawerFrontGap, EPSILON),
         qty: 1,
         label: `${cellLabel} door`,
+        thickness: design.materialThickness,
       });
     } else if (cell.door === 'pair') {
       parts.push({
@@ -167,6 +174,7 @@ export function generateFurnitureParts(
         width: Math.max(row.height - design.drawerFrontGap, EPSILON),
         qty: 2,
         label: `${cellLabel} door pair`,
+        thickness: design.materialThickness,
       });
     }
   });
@@ -347,24 +355,28 @@ function drawerParts(
       width: drawerHeight,
       qty: 1,
       label: `${label} drawer front`,
+      thickness: design.materialThickness,
     },
     {
       length: drawerOutsideDepth,
       width: drawerHeight,
       qty: 2,
       label: `${label} drawer left/right side`,
+      thickness: design.drawerBoxThickness,
     },
     {
       length: boxCrossWidth,
       width: drawerHeight,
       qty: 2,
       label: `${label} drawer box front/back`,
+      thickness: design.drawerBoxThickness,
     },
     {
       length: boxCrossWidth,
       width: bottomDepth,
       qty: 1,
       label: `${label} drawer bottom`,
+      thickness: design.drawerBottomThickness,
     },
   ];
 }

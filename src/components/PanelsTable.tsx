@@ -23,6 +23,9 @@ export function PanelsTable() {
             <th>Length</th>
             <th>Width</th>
             <th>Qty</th>
+            <th title="Material thickness — panels only nest on stock of the same thickness">
+              Thick
+            </th>
             <th>Label</th>
             <th title="Grain runs along this panel's length">G</th>
             <th aria-label="actions" />
@@ -56,6 +59,15 @@ export function PanelsTable() {
                   min={0}
                   ariaLabel="Qty"
                   onChange={(v) => updatePanel(p.id, { qty: v })}
+                />
+              </td>
+              <td>
+                <EditableNumber
+                  value={p.thickness ?? 0.75}
+                  step={0.0625}
+                  min={0}
+                  ariaLabel="Thickness"
+                  onChange={(v) => updatePanel(p.id, { thickness: v })}
                 />
               </td>
               <td>
@@ -93,7 +105,7 @@ export function PanelsTable() {
           ))}
           {panels.length === 0 && (
             <tr>
-              <td colSpan={6} className="empty">
+              <td colSpan={7} className="empty">
                 No panels yet.
               </td>
             </tr>

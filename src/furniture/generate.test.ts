@@ -21,8 +21,14 @@ describe('furniture grid generation', () => {
     });
 
     expect(parts).toEqual([
-      { length: 34, width: 24, qty: 2, label: 'Cabinet side' },
-      { length: 28.5, width: 24, qty: 2, label: 'Cabinet top/bottom' },
+      { length: 34, width: 24, qty: 2, label: 'Cabinet side', thickness: 0.75 },
+      {
+        length: 28.5,
+        width: 24,
+        qty: 2,
+        label: 'Cabinet top/bottom',
+        thickness: 0.75,
+      },
     ]);
   });
 
@@ -48,6 +54,7 @@ describe('furniture grid generation', () => {
       width: 4,
       qty: 1,
       label: 'Toe kick board',
+      thickness: 0.75,
     });
     // Cabinet sides still run full height to the floor.
     expect(parts).toContainEqual({
@@ -55,6 +62,7 @@ describe('furniture grid generation', () => {
       width: 24,
       qty: 2,
       label: 'Cabinet side',
+      thickness: 0.75,
     });
   });
 
@@ -132,42 +140,49 @@ describe('furniture grid generation', () => {
       width: 32,
       qty: 1,
       label: 'Cabinet back',
+      thickness: 0.25,
     });
     expect(parts).toContainEqual({
       length: 30.5,
       width: 20,
       qty: 1,
       label: 'Vertical divider 1',
+      thickness: 0.75,
     });
     expect(parts).toContainEqual({
       length: 18,
       width: 20,
       qty: 1,
       label: 'Column 1 horizontal divider 1',
+      thickness: 0.75,
     });
     expect(parts).toContainEqual({
       length: 17.875,
       width: 11.875,
       qty: 1,
       label: 'R1C1 drawer front',
+      thickness: 0.75,
     });
     expect(parts).toContainEqual({
       length: 19.625,
       width: 11.875,
       qty: 1,
       label: 'R1C2 door',
+      thickness: 0.75,
     });
     expect(parts).toContainEqual({
       length: 8.9375,
       width: 17.625,
       qty: 2,
       label: 'R2C1 door pair',
+      thickness: 0.75,
     });
     expect(parts).toContainEqual({
       length: 16,
       width: 18.25,
       qty: 1,
       label: 'R1C1 drawer bottom',
+      thickness: 0.25,
     });
   });
 });
