@@ -6,17 +6,24 @@ import type { FurnitureDesign } from '../furniture/types';
 
 type Props = {
   design: FurnitureDesign;
-  onClose: () => void;
 };
 
-export function FurniturePreviewModal({ design, onClose }: Props) {
+export function FurniturePreview({ design }: Props) {
   const hostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || !isFurnitureDesignValid(design)) return;
+    if (!host) return;
 
     host.replaceChildren();
+    if (!isFurnitureDesignValid(design)) {
+      const message = document.createElement('div');
+      message.className = 'canvas-empty';
+      message.textContent = 'Adjust the grid dimensions to show the preview.';
+      host.append(message);
+      return;
+    }
+
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -77,38 +84,7 @@ export function FurniturePreviewModal({ design, onClose }: Props) {
     };
   }, [design]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
-  return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div
-        className="modal furniture-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="furniture-preview-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <header className="modal-header">
-          <h2 id="furniture-preview-title">Furniture preview</h2>
-          <button
-            className="btn-icon modal-close"
-            aria-label="Close preview"
-            title="Close"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </header>
-        <div className="furniture-preview-canvas" ref={hostRef} />
-      </div>
-    </div>
-  );
+  return <div className="furniture-preview-canvas" ref={hostRef} />;
 }
 
 function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
@@ -118,6 +94,8 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
   const d = design.depth;
   const innerW = w - 2 * t;
   const innerH = h - 2 * t;
+  const originX = -innerW / 2;
+  const originY = -innerH / 2;
 
   const carcassMaterial = new THREE.MeshStandardMaterial({
     color: 0xcbd5e1,
@@ -125,7 +103,7 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
     transparent: true,
     opacity: 0.82,
   });
-  const shelfMaterial = new THREE.MeshStandardMaterial({
+  const dividerMaterial = new THREE.MeshStandardMaterial({
     color: 0xe2e8f0,
     roughness: 0.72,
     transparent: true,
@@ -141,10 +119,16 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
     color: 0xb6c7a9,
     roughness: 0.7,
     transparent: true,
+    opacity: 0.76,
+  });
+  const doorMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd9c8a9,
+    roughness: 0.7,
+    transparent: true,
     opacity: 0.72,
   });
   const drawerBoxMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd9c8a9,
+    color: 0xf1e4c8,
     roughness: 0.7,
     transparent: true,
     opacity: 0.34,
@@ -155,11 +139,6 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
   addBox(scene, [0, h / 2 - t / 2, 0], [innerW, t, d], carcassMaterial);
   addBox(scene, [0, -h / 2 + t / 2, 0], [innerW, t, d], carcassMaterial);
 
-  for (let index = 1; index <= design.shelfCount; index += 1) {
-    const y = -h / 2 + t + (innerH * index) / (design.shelfCount + 1);
-    addBox(scene, [0, y, 0], [innerW, t, d], shelfMaterial);
-  }
-
   if (design.includeBack) {
     addBox(
       scene,
@@ -169,27 +148,77 @@ function addCabinetPreview(scene: THREE.Scene, design: FurnitureDesign) {
     );
   }
 
-  if (design.drawerCount > 0) {
-    const drawerW = innerW - design.drawerSideClearance;
-    const drawerD = d - t;
-    const segmentH = innerH / design.drawerCount;
-    const drawerH = segmentH - design.drawerFrontGap;
+  let x = originX;
+  for (let columnIndex = 0; columnIndex < design.columns.length - 1; columnIndex += 1) {
+    x += design.columns[columnIndex].width;
+    addBox(scene, [x + t / 2, 0, 0], [t, innerH, d], dividerMaterial);
+    x += t;
+  }
 
-    for (let index = 0; index < design.drawerCount; index += 1) {
-      const y = -h / 2 + t + segmentH * index + segmentH / 2;
+  x = originX;
+  for (const [columnIndex, column] of design.columns.entries()) {
+    let y = originY;
+    for (let rowIndex = 0; rowIndex < design.rows.length - 1; rowIndex += 1) {
+      y += design.rows[rowIndex].height;
       addBox(
         scene,
-        [0, y, d / 2 + t * 0.12],
-        [drawerW, drawerH, t * 0.35],
-        drawerMaterial,
+        [x + column.width / 2, y + t / 2, 0],
+        [column.width, t, d],
+        dividerMaterial,
       );
-      addBox(
-        scene,
-        [0, y, t / 2],
-        [drawerW, drawerH * 0.78, drawerD],
-        drawerBoxMaterial,
-      );
+      y += t;
     }
+
+    y = originY;
+    for (const [rowIndex, row] of design.rows.entries()) {
+      const cell = design.cells[rowIndex][columnIndex];
+      const center: [number, number, number] = [
+        x + column.width / 2,
+        y + row.height / 2,
+        d / 2 + t * 0.12,
+      ];
+      if (cell.kind === 'drawer') {
+        addBox(
+          scene,
+          center,
+          [column.width - design.drawerFrontGap, row.height - design.drawerFrontGap, t * 0.35],
+          drawerMaterial,
+        );
+        addBox(
+          scene,
+          [x + column.width / 2, y + row.height / 2, t / 2],
+          [
+            column.width - design.drawerSideClearance,
+            Math.max(row.height - design.drawerFrontGap, 0.01) * 0.78,
+            d - t,
+          ],
+          drawerBoxMaterial,
+        );
+      } else if (cell.door === 'single') {
+        addBox(
+          scene,
+          center,
+          [column.width - design.drawerFrontGap, row.height - design.drawerFrontGap, t * 0.3],
+          doorMaterial,
+        );
+      } else if (cell.door === 'pair') {
+        const doorWidth = (column.width - design.drawerFrontGap) / 2;
+        addBox(
+          scene,
+          [center[0] - doorWidth / 2, center[1], center[2]],
+          [doorWidth, row.height - design.drawerFrontGap, t * 0.3],
+          doorMaterial,
+        );
+        addBox(
+          scene,
+          [center[0] + doorWidth / 2, center[1], center[2]],
+          [doorWidth, row.height - design.drawerFrontGap, t * 0.3],
+          doorMaterial,
+        );
+      }
+      y += row.height + t;
+    }
+    x += column.width + t;
   }
 }
 

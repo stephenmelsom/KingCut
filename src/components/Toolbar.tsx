@@ -1,6 +1,11 @@
 import { useStore } from '../state/store';
 
-export function Toolbar() {
+type Props = {
+  activeTab: 'cutlist' | 'furniture';
+  onTabChange: (tab: 'cutlist' | 'furniture') => void;
+};
+
+export function Toolbar({ activeTab, onTabChange }: Props) {
   const calculate = useStore((s) => s.calculate);
   const clearAll = useStore((s) => s.clearAll);
   const loadSeed = useStore((s) => s.loadSeed);
@@ -14,6 +19,20 @@ export function Toolbar() {
         <span>KingCut</span>
         <span className="tag">Free cutlist optimizer</span>
       </div>
+      <nav className="top-tabs" aria-label="Workspace">
+        <button
+          className={activeTab === 'cutlist' ? 'active' : ''}
+          onClick={() => onTabChange('cutlist')}
+        >
+          Cutlist
+        </button>
+        <button
+          className={activeTab === 'furniture' ? 'active' : ''}
+          onClick={() => onTabChange('furniture')}
+        >
+          Furniture
+        </button>
+      </nav>
       <div className="toolbar-actions">
         <button className="btn-ghost" onClick={loadSeed} title="Load example">
           Example

@@ -21,6 +21,16 @@ npm run build
 
 Output lands in `dist/` — deploy it anywhere (GitHub Pages, Netlify, Vercel, a USB stick).
 
+## Deploy to GitHub Pages
+
+This repo includes a GitHub Actions workflow that publishes `dist/` to GitHub Pages on every push to `main`.
+
+In GitHub, open Settings → Pages, set Source to `GitHub Actions`, then push to `main`. The site will be published at:
+
+```text
+https://stephenmelsom.github.io/KingCut/
+```
+
 ## Tests
 
 ```bash

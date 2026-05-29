@@ -49,7 +49,7 @@ type Actions = {
   setOptions: (patch: Partial<Options>) => void;
   setUnit: (unit: Unit) => void;
   updateFurnitureDesign: (patch: Partial<FurnitureDesign>) => void;
-  appendFurnitureParts: () => void;
+  replacePanelsWithFurnitureParts: () => void;
   importInputs: (snapshot: Partial<InputSnapshot>) => void;
   newProject: (name: string) => void;
   switchProject: (id: string) => void;
@@ -307,21 +307,19 @@ export const useStore = create<State & Actions>((set, get) => {
       persistSoon();
     },
 
-    appendFurnitureParts: () => {
+    replacePanelsWithFurnitureParts: () => {
       const parts = generateFurnitureParts(get().furnitureDesign);
-      set((s) => ({
-        panels: [
-          ...s.panels,
-          ...parts.map((part) => ({
-            id: nanoid(8),
-            length: part.length,
-            width: part.width,
-            qty: part.qty,
-            label: part.label,
-            grain: false,
-          })),
-        ],
-      }));
+      set({
+        panels: parts.map((part) => ({
+          id: nanoid(8),
+          length: part.length,
+          width: part.width,
+          qty: part.qty,
+          label: part.label,
+          grain: false,
+        })),
+        result: null,
+      });
       persistSoon();
     },
 

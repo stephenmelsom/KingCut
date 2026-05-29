@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   defaultFurnitureDesign,
   generateFurnitureParts,
+  getFurnitureDesignValidationError,
+  normalizeFurnitureDesign,
 } from './generate';
 
-describe('generateFurnitureParts', () => {
+describe('furniture grid generation', () => {
   it('generates a basic frameless carcass', () => {
     const parts = generateFurnitureParts({
       ...defaultFurnitureDesign,
@@ -12,9 +14,10 @@ describe('generateFurnitureParts', () => {
       height: 34,
       depth: 24,
       materialThickness: 0.75,
-      shelfCount: 0,
       includeBack: false,
-      drawerCount: 0,
+      rows: [{ id: 'row-1', height: 32.5 }],
+      columns: [{ id: 'col-1', width: 28.5 }],
+      cells: [[{ kind: 'shelf', door: 'none' }]],
     });
 
     expect(parts).toEqual([
@@ -23,82 +26,141 @@ describe('generateFurnitureParts', () => {
     ]);
   });
 
-  it('includes shelves and back when configured', () => {
-    const parts = generateFurnitureParts({
-      ...defaultFurnitureDesign,
-      width: 36,
-      height: 72,
-      depth: 18,
-      materialThickness: 0.75,
-      shelfCount: 3,
-      includeBack: true,
-      drawerCount: 0,
-    });
+  it('rejects row and column sums that do not match the interior', () => {
+    expect(
+      getFurnitureDesignValidationError({
+        ...defaultFurnitureDesign,
+        columns: [{ id: 'col-1', width: 20 }],
+      }),
+    ).toMatch(/column widths/i);
 
-    expect(parts).toContainEqual({
-      length: 34.5,
-      width: 18,
-      qty: 3,
-      label: 'Cabinet shelf',
-    });
-    expect(parts).toContainEqual({
-      length: 36,
-      width: 72,
-      qty: 1,
-      label: 'Cabinet back',
-    });
+    expect(
+      getFurnitureDesignValidationError({
+        ...defaultFurnitureDesign,
+        rows: [{ id: 'row-1', height: 20 }],
+        cells: [[{ kind: 'shelf', door: 'none' }]],
+      }),
+    ).toMatch(/row heights/i);
   });
 
-  it('generates drawer boxes with equal-height drawer fronts', () => {
+  it('generates backs, dividers, drawers, single doors, and paired doors', () => {
     const parts = generateFurnitureParts({
       ...defaultFurnitureDesign,
-      width: 30,
-      height: 34.5,
-      depth: 23.25,
+      width: 40,
+      height: 32,
+      depth: 20,
       materialThickness: 0.75,
-      shelfCount: 0,
-      includeBack: false,
-      drawerCount: 3,
+      includeBack: true,
+      rows: [
+        { id: 'row-1', height: 12 },
+        { id: 'row-2', height: 17.75 },
+      ],
+      columns: [
+        { id: 'col-1', width: 18 },
+        { id: 'col-2', width: 19.75 },
+      ],
+      cells: [
+        [
+          { kind: 'drawer', door: 'none' },
+          { kind: 'shelf', door: 'single' },
+        ],
+        [
+          { kind: 'shelf', door: 'pair' },
+          { kind: 'shelf', door: 'none' },
+        ],
+      ],
       drawerSideClearance: 1,
       drawerFrontGap: 0.125,
       drawerBoxThickness: 0.5,
     });
 
     expect(parts).toContainEqual({
-      length: 27.5,
-      width: 10.875,
+      length: 40,
+      width: 32,
       qty: 1,
-      label: 'Drawer 1 front',
+      label: 'Cabinet back',
     });
     expect(parts).toContainEqual({
-      length: 22.5,
-      width: 10.875,
+      length: 30.5,
+      width: 20,
+      qty: 1,
+      label: 'Vertical divider 1',
+    });
+    expect(parts).toContainEqual({
+      length: 18,
+      width: 20,
+      qty: 1,
+      label: 'Column 1 horizontal divider 1',
+    });
+    expect(parts).toContainEqual({
+      length: 17.875,
+      width: 11.875,
+      qty: 1,
+      label: 'R1C1 drawer front',
+    });
+    expect(parts).toContainEqual({
+      length: 19.625,
+      width: 11.875,
+      qty: 1,
+      label: 'R1C2 door',
+    });
+    expect(parts).toContainEqual({
+      length: 8.9375,
+      width: 17.625,
       qty: 2,
-      label: 'Drawer 1 left/right side',
+      label: 'R2C1 door pair',
     });
     expect(parts).toContainEqual({
-      length: 26.5,
-      width: 21.5,
+      length: 16,
+      width: 18.25,
       qty: 1,
-      label: 'Drawer 3 bottom',
+      label: 'R1C1 drawer bottom',
     });
   });
+});
 
-  it('rejects invalid dimensions', () => {
-    expect(() =>
-      generateFurnitureParts({
-        ...defaultFurnitureDesign,
-        width: 1,
-        materialThickness: 0.75,
-      }),
-    ).toThrow(/interior/i);
+describe('legacy furniture migration', () => {
+  it('migrates shelf-only designs into shelf rows', () => {
+    const migrated = normalizeFurnitureDesign({
+      shelfCount: 2,
+      drawerCount: 0,
+    });
 
-    expect(() =>
-      generateFurnitureParts({
-        ...defaultFurnitureDesign,
-        drawerCount: 2,
-        drawerFrontGap: 20,
-      }),
-    ).toThrow(/drawer/i);
+    expect(migrated.columns).toHaveLength(1);
+    expect(migrated.rows).toHaveLength(3);
+    expect(migrated.cells.flat()).toEqual([
+      { kind: 'shelf', door: 'none' },
+      { kind: 'shelf', door: 'none' },
+      { kind: 'shelf', door: 'none' },
+    ]);
+  });
+
+  it('migrates drawer-only designs into drawer rows', () => {
+    const migrated = normalizeFurnitureDesign({
+      shelfCount: 0,
+      drawerCount: 3,
+    });
+
+    expect(migrated.rows).toHaveLength(3);
+    expect(migrated.cells.flat()).toEqual([
+      { kind: 'drawer', door: 'none' },
+      { kind: 'drawer', door: 'none' },
+      { kind: 'drawer', door: 'none' },
+    ]);
+  });
+
+  it('migrates mixed designs with drawer rows first', () => {
+    const migrated = normalizeFurnitureDesign({
+      shelfCount: 1,
+      drawerCount: 2,
+    });
+
+    expect(migrated.rows).toHaveLength(4);
+    expect(migrated.cells.flat()).toEqual([
+      { kind: 'drawer', door: 'none' },
+      { kind: 'drawer', door: 'none' },
+      { kind: 'shelf', door: 'none' },
+      { kind: 'shelf', door: 'none' },
+    ]);
   });
 });
