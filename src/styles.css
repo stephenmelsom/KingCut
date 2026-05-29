@@ -764,6 +764,15 @@ input[type="text"]:focus {
     height: auto;
     overflow: visible;
   }
+  /* The app shell is a full-viewport flex column with overflow:hidden for the
+     interactive UI. In print that clips the cut plan to one screen and traps
+     it in a 100vw box, so flatten it to normal block flow. */
+  .app {
+    display: block;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
   /* Hide the entire interactive screen. */
   .toolbar,
   .layout {
